@@ -2,6 +2,9 @@ class FilterRow {
   static first = true;
 
   constructor() {
+    /**
+     * @type {HTMLDivElement}
+     */
     this.row = document.createElement("div");
     this.row.classList.add("form-control");
     this.row.classList.add("deletable");
@@ -13,7 +16,7 @@ class FilterRow {
       this.row.innerHTML = `<select name="logical"><option value="and">and</option><option value="or">or</option></select>`;
     }
     FilterRow.first = false;
-    this.row.innerHTML += `<select name="fields" required></select><select name="filterName" required></select><input type="text" name="filterString" required /><button type="button" class="deleteRow">*</button>`;
+    this.row.innerHTML += `<select name="fields" required></select><select name="filterName" required></select><input type="text" name="filterString" required />`;
 
     this.filters = {
       string: [
@@ -39,10 +42,6 @@ class FilterRow {
     };
 
     this.populateFields();
-  }
-
-  getDel() {
-    return this.row.querySelector(".deleteRow");
   }
 
   getRow() {
@@ -82,10 +81,18 @@ class FilterRow {
     });
     // this.row.querySelector();
     fieldElt.addEventListener("input", this.handleOptChange.bind(this));
-  }
-
-  handleDelClick(e) {
-    console.log(e);
+    // const deleteBtn = this.getDel();
+    // deleteBtn.addEventListener("click", (e) => {
+    // console.log(this.rows.length);
+    // if (this.rows.length === 1) {
+    //   this.wrapper.removeChild(this.form);
+    //   this.close();
+    //   FilterDialog.first = true;
+    // } else {
+    //   const row = this.rows.at(-1);
+    //   this.form.removeChild(row.getRow());
+    // }
+    // });
   }
 
   handleOptChange(e) {
@@ -194,29 +201,41 @@ export default class FilterDialog extends HTMLDialogElement {
     this.append(style, this.form, this.addRowBtn);
   }
 
+  /**
+   *
+   * @param {Event} e
+   */
+  handleDeleteRow(e) {
+    /**
+     * @type {HTMLButtonElement}
+     */
+    const t = e.target;
+    const row = t.parentElement;
+
+    this.rows
+      .filter((r) => r.row === row)
+      .forEach((r) => {
+        this.form.removeChild(r.row);
+      });
+  }
+
   handleAddRow() {
     const filterRow = new FilterRow();
     this.rows.push(filterRow);
-    this.querySelector("form").appendChild(filterRow.getRow());
+    const row = filterRow.getRow();
+    row.innerHTML += `<button type="button" class="deleteRow">*</button>`;
+    row
+      .querySelector(".deleteRow")
+      .addEventListener("click", this.handleDeleteRow.bind(this));
+    this.querySelector("form").appendChild(row);
   }
 
   connectedCallback() {
+    /**
+     * @type {FilterRow[]}
+     */
     this.rows = [];
-    const filterRow = new FilterRow();
-    this.rows.push(filterRow);
-    this.form.appendChild(filterRow.getRow());
-    const deleteBtn = filterRow.getDel();
-    deleteBtn.addEventListener("click", (e) => {
-      console.log(this.rows.length);
-      // if (this.rows.length === 1) {
-      //   this.wrapper.removeChild(this.form);
-      //   this.close();
-      //   FilterDialog.first = true;
-      // } else {
-      //   const row = this.rows.at(-1);
-      //   this.form.removeChild(row.getRow());
-      // }
-    });
+    this.handleAddRow();
   }
 
   attributeChangedCallback() {
